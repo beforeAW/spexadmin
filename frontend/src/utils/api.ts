@@ -54,7 +54,9 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
   // Handle other errors
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(errorData.error || `HTTP ${response.status}`);
+    const baseMsg = errorData.error || `HTTP ${response.status}`;
+    const detailsMsg = errorData.details ? `: ${errorData.details}` : '';
+    throw new Error(`${baseMsg}${detailsMsg}`);
   }
 
   // Handle 204 No Content
