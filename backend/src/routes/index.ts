@@ -1281,7 +1281,7 @@ async function routes(fastify: FastifyInstance): Promise<void> {
   fastify.get(
     '/api/dashboard/stats',
     { preHandler: [requireAdminOrManager] },
-    async (request, reply) => {
+    async (_request, reply) => {
       try {
         // Count total users
         const totalUsers = await User.countDocuments();
