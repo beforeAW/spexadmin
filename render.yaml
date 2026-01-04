@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: spexadmin-backend
+    runtime: node
+    region: frankfurt  # or your preferred region
+    plan: free  # or starter, standard, etc.
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false  # Set this in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true  # Render will generate a secure value
+      - key: FRONTEND_URL
+        value: https://your-frontend-url.com
+    healthCheckPath: /health
