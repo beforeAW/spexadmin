@@ -6,6 +6,7 @@ import Input from '../components/Input';
 import FormField from '../components/FormField';
 import Checkbox from '../components/Checkbox';
 import Textarea from '../components/Textarea';
+import { authAPI } from '../utils/api';
 
 interface RegisterFormData {
   email: string;
@@ -177,28 +178,16 @@ function RegisterPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          firstname: formData.firstname,
-          lastname: formData.lastname,
-          nickname: formData.nickname || undefined,
-          personnummer: formData.personnummer || undefined,
-          foodpreference: foodPreferencesList.join('\n') || undefined,
-          allergys: allergiesList.join('\n') || undefined,
-        }),
+      const data = await authAPI.register({
+        email: formData.email,
+        password: formData.password,
+        firstname: formData.firstname,
+        lastname: formData.lastname,
+        nickname: formData.nickname || undefined,
+        personnummer: formData.personnummer || undefined,
+        foodpreference: foodPreferencesList.join('\n') || undefined,
+        allergys: allergiesList.join('\n') || undefined,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
 
       // Store token in localStorage
       localStorage.setItem('token', data.token);
