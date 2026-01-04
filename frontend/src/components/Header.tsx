@@ -46,10 +46,28 @@ function Header() {
               Register
             </Link>
             <Link
+              to="/dashboard"
+              className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 font-medium"
+            >
+              Dashboard
+            </Link>
+            <Link
               to="/events"
               className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 font-medium"
             >
               Events
+            </Link>
+            <Link
+              to="/groups"
+              className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 font-medium"
+            >
+              Groups
+            </Link>
+            <Link
+              to="/users"
+              className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 font-medium"
+            >
+              Users
             </Link>
             <Link
               to="/events/6"
@@ -209,10 +227,28 @@ function Header() {
                 Register
               </Link>
               <Link
+                to="/dashboard"
+                className="block text-karspex-black hover:text-karspex-gold hover:bg-karspex-white transition-colors duration-200 font-medium py-2 px-4 rounded"
+              >
+                Dashboard
+              </Link>
+              <Link
                 to="/events"
                 className="block text-karspex-black hover:text-karspex-gold hover:bg-karspex-white transition-colors duration-200 font-medium py-2 px-4 rounded"
               >
                 Events
+              </Link>
+              <Link
+                to="/groups"
+                className="block text-karspex-black hover:text-karspex-gold hover:bg-karspex-white transition-colors duration-200 font-medium py-2 px-4 rounded"
+              >
+                Groups
+              </Link>
+              <Link
+                to="/users"
+                className="block text-karspex-black hover:text-karspex-gold hover:bg-karspex-white transition-colors duration-200 font-medium py-2 px-4 rounded"
+              >
+                Users
               </Link>
               <Link
                 to="/events/6"
