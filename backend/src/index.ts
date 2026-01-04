@@ -38,6 +38,12 @@ fastify.get('/', async () => ({
   },
 }));
 
+// Favicon handler to prevent 404s from default browser requests
+fastify.get('/favicon.ico', async (request, reply) => {
+  // Respond with No Content; frontend provides an inline favicon
+  reply.status(204).send();
+});
+
 // Health check endpoint
 fastify.get('/health', async () => ({
   status: 'ok',
