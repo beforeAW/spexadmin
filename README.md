@@ -1,77 +1,86 @@
 # Spexadmin
 
-Fullstack-applikation för Spexadmin.
+Fullstack-applikation för Spexadmin. Denna README summerar frontend och backend, installation, miljövariabler samt routing.
 
-## Projektstruktur
+## Struktur
 
 ```
 spexadmin/
-├── backend/              # Fastify backend (TypeScript)
-│   ├── src/
-│   │   ├── index.ts      # Main server file
-│   │   └── routes/
-│   │       └── index.ts  # API routes
-│   ├── dist/             # Compiled JavaScript
-│   ├── .eslintrc.json    # ESLint configuration
-│   ├── .prettierrc.json  # Prettier configuration
-│   ├── tsconfig.json     # TypeScript configuration
-│   ├── .gitignore
-│   ├── package.json
-│   └── .env.example
-└── README.md
+├── backend/   # Fastify + TypeScript + Mongoose
+└── frontend/  # React + TypeScript + Vite + Tailwind
 ```
 
-## Backend
+## Snabbstart
 
-Backend är byggd med Fastify, TypeScript och MongoDB och följer Airbnb JavaScript/TypeScript Style Guide.
+- Backend
+	```bash
+	cd backend
+	npm install
+	npm run dev
+	```
 
-### Installation
-```bash
-cd backend
-npm install
-```
+- Frontend
+	```bash
+	cd frontend
+	npm install
+	npm run dev
+	```
 
-### MongoDB Setup
-Ensure MongoDB is running locally or configure your connection string in `.env`:
-```bash
-# Local MongoDB
-MONGODB_URI=mongodb://localhost:27017/spexadmin
+Öppna http://localhost:5173 för frontend. Backend lyssnar normalt på http://localhost:3000.
 
-# Or MongoDB Atlas
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/spexadmin
-```
+## Frontend (sammanfattning)
 
-### Konfiguration
-```bash
-cd backend
-cp .env.example .env
-# Edit .env with your MongoDB connection string
-```
+- Stack: React 18, TypeScript, Vite, Tailwind CSS v4, ESLint (Airbnb), Prettier.
+- Miljövariabel: `VITE_API_BASE_URL` (ex. `https://spexadmin.onrender.com`).
+	- Om saknas: i produktion fallback till `https://spexadmin.onrender.com`, i dev `http://localhost:3000`.
+	- Tips: undvik avslutande slash.
+- Auth: 401-svar loggar ut automatiskt och redirectar till `/login`.
+- Header/Footer: döljs på `/`, `/login` och `/register`; visas på övriga sidor.
+- Rollbaserad navigation:
+	- Dashboard: `admin` eller `manager`
+	- Events: alla inloggade
+	- Groups: `admin`, `manager` eller `groupmanager`
+	- Users: endast `admin`
+	- Profile/Settings: alla inloggade
+	- Register-länkar är borttagna från header/footer.
 
-### Användning
-```bash
-cd backendGet all users
-- `POST /api/users` - Create a new user
-- `GET /api/users/:id` - Get user by ID
-- `PUT /api/users/:id` - Update user
-- `DELETE /api/users/:id` - Delete user
-npm run dev    # Development mode (tsx watch)
-npm run build  # Build TypeScript to JavaScript
-npm start      # Production mode (runs compiled code)
-npm run lint   # Check linting
-npm run format # Format code
-```
+### Frontend-sitemap
 
-### API Endpoints
-- `GET /health` - Health check
-- `GET /api/hello` - Example endpoint
-- `GET /api/users` - Example users endpoint
+- `/` → Start (renderar LoginPage)
+- `/login` → Inloggning (utan header/footer)
+- `/register` → Registrering (utan header/footer)
+- `/profile` → Profil (kräver inloggning; login/registration redirect hit vid lyckad auth)
+- `/settings` → Inställningar (kräver inloggning)
+- `/events` → Evenemangslista
+- `/events/:id` → Evenemangsdetaljer
+- `/groups` → Grupphantering (admin/manager/groupmanager)
+- `/users` → Användarhantering (admin)
+- `/dashboard` → Översikt (admin/manager)
+
+## Backend (sammanfattning)
+
+- Stack: Fastify 4, TypeScript, JWT (`@fastify/jwt`), Helmet/CORS, MongoDB via Mongoose.
+- Miljövariabler:
+	- `PORT` (default 3000), `HOST` (default `0.0.0.0`)
+	- `JWT_SECRET` (krävs i produktion)
+	- `MONGODB_URI` (server-URI; utan databassökväg rekommenderas)
+	- `MONGODB_DB_NAME` (explicit databasnamn; undviker case-konflikter)
+- Scripts: `npm run dev`, `npm run build`, `npm start`, `npm run lint`, `npm run lint:fix`, `npm run format`.
+
+### API-översikt
+
+- Bas: `GET /` (API-info), `GET /health`, `GET /favicon.ico` (204)
+- Auth: `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
+- Current user: `GET/PUT /api/users/me`, `PUT /api/users/me/password`, `PUT /api/users/me/preferences`
+- Users: `GET /api/users`, `POST /api/users` (admin), `GET/PUT/DELETE /api/users/:id`
+- Admin: `GET /api/admin/users`, `GET /api/admin/users/:userId`, `POST /api/admin/users`
+- Groups: `GET/POST /api/groups`, `GET/PUT/DELETE /api/groups/:groupId`, members/managers add/remove
+- Events: `GET/POST /api/events`, `GET/PUT/DELETE /api/events/:id`, `GET /api/events/search`
+- RSVPs: `POST/DELETE /api/events/:eventId/rsvp/:userId`, `GET /api/users/:userId/events`, `GET /api/users/:userId/available-events`
+- Dashboard: `GET /api/dashboard/stats` (admin/manager)
 
 ## Kodstandarder
 
-Projektet följer:
-- **Airbnb JavaScript Style Guide**: https://airbnb.io/projects/javascript/
-- **Airbnb TypeScript Style Guide**: https://github.com/airbnb/javascript
-- **ESLint**: Konfigurerad med Airbnb base + TypeScript config
-- **Prettier**: För konsekvent kodformattering
-- **TypeScript**: För typsäkerhet och bättre utvecklarupplevelse
+- Airbnb JavaScript/TypeScript Style Guide
+- ESLint + Prettier
+- React best practices
