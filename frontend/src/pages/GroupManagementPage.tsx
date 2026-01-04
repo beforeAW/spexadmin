@@ -76,7 +76,7 @@ const mockUser: User = {
 function GroupManagementPage() {
   const [groups, setGroups] = useState<Group[]>(mockGroups);
   const [user, setUser] = useState<User>(mockUser);
-  const [availableUsers, setAvailableUsers] = useState<User[]>(mockAvailableUsers);
+  const [availableUsers] = useState<User[]>(mockAvailableUsers);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);

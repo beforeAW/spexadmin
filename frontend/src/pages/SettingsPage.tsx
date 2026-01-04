@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { User, Lock, Bell, Shield, Save } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -35,7 +34,6 @@ const mockUser: UserData = {
 };
 
 function SettingsPage() {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'preferences'>('profile');
   const [user, setUser] = useState<UserData>(mockUser);
   const [isSaving, setIsSaving] = useState(false);

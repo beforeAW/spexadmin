@@ -80,9 +80,9 @@ const mockUser: User = {
 function DashboardPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User>(mockUser);
-  const [stats, setStats] = useState<DashboardStats>(mockStats);
-  const [recentEvents, setRecentEvents] = useState<RecentEvent[]>(mockRecentEvents);
-  const [isLoading, setIsLoading] = useState(false);
+  const [stats] = useState<DashboardStats>(mockStats);
+  const [recentEvents] = useState<RecentEvent[]>(mockRecentEvents);
+  const [_isLoading, _setIsLoading] = useState(false);
 
   useEffect(() => {
     // Get user from localStorage or use mock

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, UserPlus, Edit2, Trash2, Shield, Users, Mail, Phone } from 'lucide-react';
+import { Search, Edit2, Trash2, Users } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Button from '../components/Button';
