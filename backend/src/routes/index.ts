@@ -122,6 +122,118 @@ async function routes(fastify: FastifyInstance): Promise<void> {
     }
   });
 
+  // ==================== CURRENT USER ROUTES ====================
+
+  // Get current user profile
+  fastify.get('/api/users/me', { preHandler: [authenticate] }, async (request, reply) => {
+    try {
+      const decoded = request.user as { id: string };
+      const user = await User.findById(decoded.id);
+      if (!user) {
+        reply.status(404).send({ error: 'User not found' });
+        return;
+      }
+      reply.send(user);
+    } catch (error) {
+      reply.status(400).send({ error: 'Failed to fetch user profile' });
+    }
+  });
+
+  // Update current user profile
+  fastify.put<{
+    Body: {
+      firstname?: string;
+      lastname?: string;
+      nickname?: string;
+      email?: string;
+      personnummer?: string;
+    };
+  }>('/api/users/me', { preHandler: [authenticate] }, async (request, reply) => {
+    try {
+      const decoded = request.user as { id: string };
+      const user = await User.findByIdAndUpdate(decoded.id, request.body, {
+        new: true,
+        runValidators: true,
+      });
+      if (!user) {
+        reply.status(404).send({ error: 'User not found' });
+        return;
+      }
+      reply.send(user);
+    } catch (error: any) {
+      if (error.code === 11000) {
+        reply.status(409).send({ error: 'Email already in use' });
+      } else {
+        reply.status(400).send({ error: 'Failed to update profile', details: error.message });
+      }
+    }
+  });
+
+  // Update current user password
+  fastify.put<{
+    Body: {
+      currentPassword: string;
+      newPassword: string;
+    };
+  }>('/api/users/me/password', { preHandler: [authenticate] }, async (request, reply) => {
+    try {
+      const decoded = request.user as { id: string };
+      const { currentPassword, newPassword } = request.body;
+
+      // Find user with password field
+      const user = await User.findById(decoded.id).select('+password');
+      if (!user) {
+        reply.status(404).send({ error: 'User not found' });
+        return;
+      }
+
+      // Verify current password
+      const isPasswordValid = await user.comparePassword(currentPassword);
+      if (!isPasswordValid) {
+        reply.status(401).send({ error: 'Current password is incorrect' });
+        return;
+      }
+
+      // Update password
+      user.password = newPassword;
+      await user.save();
+
+      reply.send({ message: 'Password updated successfully' });
+    } catch (error: any) {
+      reply.status(400).send({ error: 'Failed to update password', details: error.message });
+    }
+  });
+
+  // Update current user preferences (food preferences and allergies)
+  fastify.put<{
+    Body: {
+      foodpreference?: string;
+      allergys?: string;
+    };
+  }>('/api/users/me/preferences', { preHandler: [authenticate] }, async (request, reply) => {
+    try {
+      const decoded = request.user as { id: string };
+      const user = await User.findByIdAndUpdate(
+        decoded.id,
+        {
+          foodpreference: request.body.foodpreference,
+          allergys: request.body.allergys,
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+      if (!user) {
+        reply.status(404).send({ error: 'User not found' });
+        return;
+      }
+      reply.send(user);
+    } catch (error: any) {
+      reply.status(400).send({ error: 'Failed to update preferences', details: error.message });
+    }
+  });
+
   // ==================== USER ROUTES ====================
 
   // Get all users (authenticated users only)
@@ -1162,6 +1274,61 @@ async function routes(fastify: FastifyInstance): Promise<void> {
       });
     }
   });
+
+  // ==================== DASHBOARD ROUTES ====================
+
+  // Get dashboard statistics (for managers and admins)
+  fastify.get(
+    '/api/dashboard/stats',
+    { preHandler: [requireAdminOrManager] },
+    async (request, reply) => {
+      try {
+        // Count total users
+        const totalUsers = await User.countDocuments();
+
+        // Count active users
+        const activeUsers = await User.countDocuments({ active: true });
+
+        // Count total events
+        const totalEvents = await Event.countDocuments();
+
+        // Count upcoming events (events with date in the future)
+        const now = new Date();
+        const upcomingEvents = await Event.countDocuments({
+          startDate: { $gte: now },
+        });
+
+        // Count total groups
+        const totalGroups = await Group.countDocuments();
+
+        // Get recent events (last 10)
+        const recentEvents = await Event.find()
+          .sort({ startDate: -1 })
+          .limit(10)
+          .select('name startDate rsvps');
+
+        reply.send({
+          totalUsers,
+          activeUsers,
+          totalEvents,
+          upcomingEvents,
+          totalGroups,
+          recentEvents: recentEvents.map((event) => ({
+            _id: event._id,
+            title: event.name,
+            date: event.startDate,
+            attendees: event.rsvps?.filter((r) => r.status === 'yes').length || 0,
+            status: new Date(event.startDate) > now ? 'upcoming' : 'past',
+          })),
+        });
+      } catch (error: any) {
+        reply.status(400).send({
+          error: 'Failed to fetch dashboard stats',
+          details: error.message,
+        });
+      }
+    }
+  );
 }
 
 export default routes;
