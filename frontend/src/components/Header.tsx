@@ -52,6 +52,12 @@ function Header() {
               Events
             </Link>
             <Link
+              to="/events/6"
+              className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 font-medium"
+            >
+              Event Detail
+            </Link>
+            <Link
               to="/profile"
               className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 font-medium"
             >
@@ -93,6 +99,12 @@ function Header() {
               className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 text-sm font-medium"
             >
               Events
+            </Link>
+            <Link
+              to="/events/6"
+              className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 text-sm font-medium"
+            >
+              Event Detail
             </Link>
             <Link
               to="/profile"
@@ -201,6 +213,12 @@ function Header() {
                 className="block text-karspex-black hover:text-karspex-gold hover:bg-karspex-white transition-colors duration-200 font-medium py-2 px-4 rounded"
               >
                 Events
+              </Link>
+              <Link
+                to="/events/6"
+                className="block text-karspex-black hover:text-karspex-gold hover:bg-karspex-white transition-colors duration-200 font-medium py-2 px-4 rounded"
+              >
+                Event Detail
               </Link>
             </nav>
           </div>
