@@ -52,6 +52,12 @@ function Header() {
               Events
             </Link>
             <Link
+              to="/groups"
+              className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 font-medium"
+            >
+              Groups
+            </Link>
+            <Link
               to="/events/6"
               className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 font-medium"
             >
@@ -213,6 +219,12 @@ function Header() {
                 className="block text-karspex-black hover:text-karspex-gold hover:bg-karspex-white transition-colors duration-200 font-medium py-2 px-4 rounded"
               >
                 Events
+              </Link>
+              <Link
+                to="/groups"
+                className="block text-karspex-black hover:text-karspex-gold hover:bg-karspex-white transition-colors duration-200 font-medium py-2 px-4 rounded"
+              >
+                Groups
               </Link>
               <Link
                 to="/events/6"
