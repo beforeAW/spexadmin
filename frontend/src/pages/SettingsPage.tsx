@@ -17,8 +17,8 @@ interface UserData {
   nickname?: string;
   email: string;
   personnummer?: string;
-  foodpreference?: string;
-  allergys?: string;
+  foodpreference?: string | string[];
+  allergys?: string | string[];
   roles: string[];
 }
 
@@ -86,12 +86,14 @@ function SettingsPage() {
           personnummer: userData.personnummer || '',
         });
 
-        // Parse food preferences and allergies from string format
-        const parseFoodPreferences = (prefs: string = '') => {
-          const lines = prefs
-            .split('\n')
-            .map((l) => l.trim())
-            .filter((l) => l);
+        // Parse food preferences and allergies from string or array formats
+        const parseFoodPreferences = (prefs?: string | string[]) => {
+          const lines = Array.isArray(prefs)
+            ? prefs.map((l) => String(l).trim()).filter((l) => l)
+            : (prefs || '')
+                .split('\n')
+                .map((l) => l.trim())
+                .filter((l) => l);
           return {
             vegetarian: lines.some((l) => l.toLowerCase() === 'vegetarian'),
             vegan: lines.some((l) => l.toLowerCase() === 'vegan'),
@@ -117,11 +119,13 @@ function SettingsPage() {
           };
         };
 
-        const parseAllergies = (allergies: string = '') => {
-          const lines = allergies
-            .split('\n')
-            .map((l) => l.trim())
-            .filter((l) => l);
+        const parseAllergies = (allergies?: string | string[]) => {
+          const lines = Array.isArray(allergies)
+            ? allergies.map((l) => String(l).trim()).filter((l) => l)
+            : (allergies || '')
+                .split('\n')
+                .map((l) => l.trim())
+                .filter((l) => l);
           return {
             gluten: lines.some((l) => l.toLowerCase() === 'gluten'),
             lactose: lines.some((l) => l.toLowerCase() === 'lactose'),

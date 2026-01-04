@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
@@ -22,7 +22,7 @@ function App() {
         <Route path="/groups" element={<GroupManagementPage />} />
         <Route path="/users" element={<UserManagementPage />} />
         <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<LoginPage />} />
       </Routes>
     </Router>
   );
