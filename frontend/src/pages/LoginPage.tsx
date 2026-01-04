@@ -88,6 +88,16 @@ function LoginPage() {
             <Button type="submit" variant="primary" disabled={loading} className="w-full">
               {loading ? 'Logging in...' : 'Login'}
             </Button>
+            <div className="text-center">
+              <span className="text-karspex-black">Don't have an account? </span>
+              <button
+                type="button"
+                onClick={() => (window.location.href = '/register')}
+                className="text-karspex-red hover:underline font-semibold"
+              >
+                Register here
+              </button>
+            </div>
           </div>
         </form>
       </div>
