@@ -6,15 +6,13 @@ Fullstack-applikation för Spexadmin.
 
 ```
 spexadmin/
-├── backend/              # Fastify backend (TypeScript)
+├── backend/              # Fastify backend
 │   ├── src/
-│   │   ├── index.ts      # Main server file
+│   │   ├── index.js      # Main server file
 │   │   └── routes/
-│   │       └── index.ts  # API routes
-│   ├── dist/             # Compiled JavaScript
+│   │       └── index.js  # API routes
 │   ├── .eslintrc.json    # ESLint configuration
 │   ├── .prettierrc.json  # Prettier configuration
-│   ├── tsconfig.json     # TypeScript configuration
 │   ├── .gitignore
 │   ├── package.json
 │   └── .env.example
@@ -23,7 +21,7 @@ spexadmin/
 
 ## Backend
 
-Backend är byggd med Fastify och TypeScript och följer Airbnb JavaScript/TypeScript Style Guide.
+Backend är byggd med Fastify och följer Airbnb JavaScript Style Guide.
 
 ### Installation
 ```bash
@@ -40,9 +38,8 @@ cp .env.example .env
 ### Användning
 ```bash
 cd backend
-npm run dev    # Development mode (tsx watch)
-npm run build  # Build TypeScript to JavaScript
-npm start      # Production mode (runs compiled code)
+npm run dev    # Development mode
+npm start      # Production mode
 npm run lint   # Check linting
 npm run format # Format code
 ```
@@ -56,7 +53,5 @@ npm run format # Format code
 
 Projektet följer:
 - **Airbnb JavaScript Style Guide**: https://airbnb.io/projects/javascript/
-- **Airbnb TypeScript Style Guide**: https://github.com/airbnb/javascript
-- **ESLint**: Konfigurerad med Airbnb base + TypeScript config
+- **ESLint**: Konfigurerad med Airbnb base config
 - **Prettier**: För konsekvent kodformattering
-- **TypeScript**: För typsäkerhet och bättre utvecklarupplevelse
