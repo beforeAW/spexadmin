@@ -2,11 +2,13 @@ import mongoose from 'mongoose';
 
 export const connectDatabase = async (): Promise<void> => {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/spexadmin';
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    // Use explicit dbName to avoid case-mismatch issues across environments
+    const dbName = process.env.MONGODB_DB_NAME || 'spexadmin';
 
-    await mongoose.connect(mongoUri);
+    await mongoose.connect(mongoUri, { dbName });
 
-    console.log('MongoDB connected successfully');
+    console.log(`MongoDB connected successfully (dbName=${dbName})`);
 
     mongoose.connection.on('error', (err) => {
       console.error('MongoDB connection error:', err);
