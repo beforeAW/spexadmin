@@ -8,6 +8,7 @@ import Modal from '../components/Modal';
 import Input from '../components/Input';
 import Textarea from '../components/Textarea';
 import FormField from '../components/FormField';
+import { authAPI, eventAPI } from '../utils/api';
 
 interface Attendee {
   name: string;
@@ -15,7 +16,32 @@ interface Attendee {
   foodPreference?: string;
 }
 
+type RSVP = {
+  userId: {
+    _id: string;
+    firstname: string;
+    lastname: string;
+    allergys?: string;
+    foodpreference?: string;
+  };
+  status: string;
+};
+
 interface Event {
+  _id: string;
+  name: string;
+  description: string;
+  startDate: string;
+  location: string;
+  groupId?: { _id: string; name: string };
+  rsvps?: Array<RSVP>;
+  maxAttendees?: number;
+  rsvpDeadline?: string;
+  forceRSVP?: boolean;
+  createdBy: string;
+}
+
+interface DisplayEvent {
   _id: string;
   title: string;
   description: string;
@@ -39,155 +65,14 @@ interface User {
   roles: string[];
 }
 
-// Mock event data (in a real app, this would come from API)
-const mockEvents: Record<string, Event> = {
-  '1': {
-    _id: '1',
-    title: 'Kör Repetition',
-    description:
-      'Veckorepetition för kören. Vi repeterar nya stycken inför uppträdandet. Ta med din notbok och kom i tid!',
-    date: '2026-01-10T18:00:00Z',
-    location: 'Musiksalen, Spexhuset',
-    group: 'Kör',
-    attendees: 24,
-    maxAttendees: 30,
-    isAttending: true,
-    attendeesList: [
-      { name: 'Anna Andersson', allergies: 'Glutenintolerans', foodPreference: 'Vegetarian' },
-      { name: 'Erik Eriksson', allergies: 'Nötallergi', foodPreference: 'Alltätare' },
-      { name: 'Maria Svensson', foodPreference: 'Vegan' },
-      { name: 'Johan Karlsson', allergies: 'Laktos' },
-      { name: 'Lisa Johansson', foodPreference: 'Pescetarian' },
-    ],
-    createdBy: 'user1',
-    rsvpDeadline: '2026-01-09T12:00:00Z',
-  },
-  '2': {
-    _id: '2',
-    title: 'Orkester Övning',
-    description: 'Repetition av nya låtar med orkestern.',
-    date: '2026-01-12T19:00:00Z',
-    location: 'Stora salen, Spexhuset',
-    group: 'Orkester',
-    attendees: 18,
-    maxAttendees: 25,
-    isAttending: false,
-    attendeesList: [
-      { name: 'Per Andersson', allergies: 'Selleri', foodPreference: 'Alltätare' },
-      { name: 'Karin Nilsson', foodPreference: 'Vegetarian' },
-      { name: 'Anders Berg', allergies: 'Skalödallergi' },
-    ],
-    createdBy: 'user1',
-    rsvpDeadline: '2026-01-11T12:00:00Z',
-  },
-  '3': {
-    _id: '3',
-    title: 'Teatergruppen Workshop',
-    description: 'Improvisationsworkshop och scenisk gestaltning.',
-    date: '2026-01-15T17:30:00Z',
-    location: 'Teatersalen',
-    group: 'Teatergruppen',
-    attendees: 15,
-    maxAttendees: 20,
-    isAttending: true,
-    attendeesList: [
-      { name: 'Emma Larsson', foodPreference: 'Vegan' },
-      { name: 'Oscar Henriksson', allergies: 'Glutenintolerans, Laktos' },
-      { name: 'Sara Pettersson', foodPreference: 'Alltätare' },
-    ],
-    createdBy: 'user1',
-    rsvpDeadline: '2026-01-14T12:00:00Z',
-  },
-  '4': {
-    _id: '4',
-    title: 'Årsmöte',
-    description: 'Årsmöte för alla medlemmar. Viktig information om kommande säsong.',
-    date: '2026-01-20T18:00:00Z',
-    location: 'Stora salen, Spexhuset',
-    group: 'Alla',
-    attendees: 67,
-    isAttending: false,
-    attendeesList: [
-      { name: 'Anna Andersson', allergies: 'Glutenintolerans', foodPreference: 'Vegetarian' },
-      { name: 'Erik Eriksson', allergies: 'Nötallergi' },
-      { name: 'Maria Svensson', foodPreference: 'Vegan' },
-    ],
-    createdBy: 'user2',
-    rsvpDeadline: '2026-01-18T23:59:00Z',
-  },
-  '5': {
-    _id: '5',
-    title: 'Spexfest',
-    description: 'Middag och mingel för alla medlemmar. Ta med egen dryck!',
-    date: '2026-01-25T19:00:00Z',
-    location: 'Spexhuset',
-    group: 'Alla',
-    attendees: 43,
-    maxAttendees: 60,
-    isAttending: true,
-    attendeesList: [
-      { name: 'Anna Andersson', allergies: 'Glutenintolerans', foodPreference: 'Vegetarian' },
-      { name: 'Erik Eriksson', allergies: 'Nötallergi', foodPreference: 'Alltätare' },
-      { name: 'Maria Svensson', foodPreference: 'Vegan' },
-    ],
-    createdBy: 'user2',
-    rsvpDeadline: '2026-01-23T23:59:00Z',
-  },
-  '6': {
-    _id: '6',
-    title: 'Nybörjarträning',
-    description: 'Introduktionsträning för nya medlemmar. Vi går igenom grunderna.',
-    date: '2026-01-06T18:00:00Z',
-    location: 'Träningslokalen, Spexhuset',
-    group: 'Alla',
-    attendees: 12,
-    maxAttendees: 15,
-    isAttending: true,
-    attendeesList: [
-      { name: 'Anna Andersson', allergies: 'Glutenintolerans', foodPreference: 'Vegetarian' },
-      { name: 'Erik Eriksson', allergies: 'Nötallergi' },
-      { name: 'Maria Svensson', foodPreference: 'Vegan' },
-      { name: 'Johan Karlsson', allergies: 'Laktos' },
-    ],
-    createdBy: 'user2',
-    rsvpDeadline: '2026-01-03T23:59:00Z',
-  },
-  '7': {
-    _id: '7',
-    title: 'Obligatoriskt säkerhetsmöte',
-    description:
-      'Obligatoriskt möte för alla medlemmar. Vi går igenom säkerhetsrutiner och viktig information.',
-    date: '2026-01-08T19:00:00Z',
-    location: 'Stora salen, Spexhuset',
-    group: 'Alla',
-    attendees: 1,
-    isAttending: true,
-    attendeesList: [
-      { name: 'Anna Andersson', allergies: 'Glutenintolerans', foodPreference: 'Vegetarian' },
-    ],
-    createdBy: 'user2',
-    rsvpDeadline: '2026-01-07T12:00:00Z',
-    forceRSVP: true,
-  },
-};
-
-// Mock current user
-const mockUser: User = {
-  _id: 'user1',
-  firstname: 'Anna',
-  lastname: 'Andersson',
-  nickname: 'Ankan',
-  roles: ['user', 'groupmanager'],
-};
-
 function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [event, setEvent] = useState<Event | null>(null);
-  const [user, setUser] = useState<User>(mockUser);
-  const [currentUserId, setCurrentUserId] = useState<string>('user1');
+  const [event, setEvent] = useState<DisplayEvent | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Form state for editing events
   const [formData, setFormData] = useState({
@@ -200,71 +85,173 @@ function EventDetailPage() {
   });
 
   useEffect(() => {
-    // Get user from localStorage or use mock
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const userData = JSON.parse(storedUser);
-      setUser(userData);
-      setCurrentUserId(userData._id || userData.id || 'user1');
-    }
+    const fetchData = async () => {
+      if (!id) {
+        navigate('/events');
+        return;
+      }
 
-    // Get event data (in real app, fetch from API)
-    if (id && mockEvents[id]) {
-      const eventData = mockEvents[id];
-      setEvent(eventData);
+      try {
+        setIsLoading(true);
+        const [userData, eventData] = await Promise.all([
+          authAPI.getCurrentUser(),
+          eventAPI.getById(id) as Promise<Event>,
+        ]);
 
-      // Pre-fill form with event data
-      setFormData({
-        title: eventData.title,
-        description: eventData.description,
-        date: new Date(eventData.date).toISOString().slice(0, 16),
-        location: eventData.location,
-        group: eventData.group,
-        maxAttendees: eventData.maxAttendees ? String(eventData.maxAttendees) : '',
-      });
-    }
-  }, [id]);
+        setUser(userData);
 
-  const canEditEvent = user.roles.includes('groupmanager') || user.roles.includes('manager');
+        // Transform event to display format
+        const displayEvent: DisplayEvent = {
+          _id: eventData._id,
+          title: eventData.name,
+          description: eventData.description,
+          date: eventData.startDate,
+          location: eventData.location,
+          group: eventData.groupId?.name || 'Alla',
+          attendees: eventData.rsvps?.filter((r: RSVP) => r.status === 'yes').length || 0,
+          maxAttendees: eventData.maxAttendees,
+          isAttending:
+            eventData.rsvps?.some(
+              (r: RSVP) => r.userId._id === userData._id && r.status === 'yes'
+            ) || false,
+          attendeesList: eventData.rsvps
+            ?.filter((r: RSVP) => r.status === 'yes')
+            .map((r: RSVP) => ({
+              name: `${r.userId.firstname} ${r.userId.lastname}`,
+              allergies: r.userId.allergys,
+              foodPreference: r.userId.foodpreference,
+            })),
+          createdBy: eventData.createdBy,
+          rsvpDeadline: eventData.rsvpDeadline,
+          forceRSVP: eventData.forceRSVP,
+        };
+
+        setEvent(displayEvent);
+
+        // Pre-fill form with event data
+        setFormData({
+          title: displayEvent.title,
+          description: displayEvent.description,
+          date: new Date(displayEvent.date).toISOString().slice(0, 16),
+          location: displayEvent.location,
+          group: displayEvent.group,
+          maxAttendees: displayEvent.maxAttendees ? String(displayEvent.maxAttendees) : '',
+        });
+      } catch (error) {
+        console.error('Failed to fetch event:', error);
+        navigate('/events');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id, navigate]);
+
+  const canEditEvent =
+    user?.roles.includes('groupmanager') || user?.roles.includes('manager') || false;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleEditEvent = (e: React.FormEvent) => {
+  const handleEditEvent = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!event) return;
+    if (!event || !id) return;
 
-    // Update event (in real app, send to API)
-    const updatedEvent: Event = {
-      ...event,
-      title: formData.title,
-      description: formData.description,
-      date: new Date(formData.date).toISOString(),
-      location: formData.location,
-      group: formData.group,
-      maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees) : undefined,
-    };
+    try {
+      await eventAPI.update(id, {
+        name: formData.title,
+        description: formData.description,
+        startDate: new Date(formData.date).toISOString(),
+        location: formData.location,
+        maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees) : undefined,
+      });
 
-    setEvent(updatedEvent);
-    setIsEditModalOpen(false);
+      // Refresh event
+      const eventData = await eventAPI.getById(id);
+      const displayEvent: DisplayEvent = {
+        _id: eventData._id,
+        title: eventData.name,
+        description: eventData.description,
+        date: eventData.startDate,
+        location: eventData.location,
+        group: eventData.groupId?.name || 'Alla',
+        attendees: eventData.rsvps?.filter((r: any) => r.status === 'yes').length || 0,
+        maxAttendees: eventData.maxAttendees,
+        isAttending:
+          eventData.rsvps?.some((r: any) => r.userId._id === user?._id && r.status === 'yes') ||
+          false,
+        attendeesList: eventData.rsvps
+          ?.filter((r: any) => r.status === 'yes')
+          .map((r: any) => ({
+            name: `${r.userId.firstname} ${r.userId.lastname}`,
+            allergies: r.userId.allergys,
+            foodPreference: r.userId.foodpreference,
+          })),
+        createdBy: eventData.createdBy,
+        rsvpDeadline: eventData.rsvpDeadline,
+        forceRSVP: eventData.forceRSVP,
+      };
+      setEvent(displayEvent);
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error('Failed to update event:', error);
+      alert('Failed to update event. Please try again.');
+    }
   };
 
-  const handleDeleteEvent = () => {
-    // Delete event (in real app, send to API)
-    navigate('/events');
+  const handleDeleteEvent = async () => {
+    if (!id) return;
+
+    try {
+      await eventAPI.delete(id);
+      navigate('/events');
+    } catch (error) {
+      console.error('Failed to delete event:', error);
+      alert('Failed to delete event. Please try again.');
+    }
   };
 
-  const handleAttendance = () => {
-    if (!event) return;
+  const handleAttendance = async () => {
+    if (!event || !id || !user) return;
 
-    setEvent({
-      ...event,
-      isAttending: !event.isAttending,
-      attendees: event.isAttending ? event.attendees - 1 : event.attendees + 1,
-    });
+    try {
+      const newStatus = event.isAttending ? 'no' : 'yes';
+      await eventAPI.rsvp(id, user._id, newStatus);
+
+      // Refresh event
+      const eventData: Event = await eventAPI.getById(id);
+      const displayEvent: DisplayEvent = {
+        _id: eventData._id,
+        title: eventData.name,
+        description: eventData.description,
+        date: eventData.startDate,
+        location: eventData.location,
+        group: eventData.groupId?.name || 'Alla',
+        attendees: eventData.rsvps?.filter((r: RSVP) => r.status === 'yes').length || 0,
+        maxAttendees: eventData.maxAttendees,
+        isAttending:
+          eventData.rsvps?.some((r: RSVP) => r.userId._id === user?._id && r.status === 'yes') ||
+          false,
+        attendeesList: eventData.rsvps
+          ?.filter((r: RSVP) => r.status === 'yes')
+          .map((r: RSVP) => ({
+            name: `${r.userId.firstname} ${r.userId.lastname}`,
+            allergies: r.userId.allergys,
+            foodPreference: r.userId.foodpreference,
+          })),
+        createdBy: eventData.createdBy,
+        rsvpDeadline: eventData.rsvpDeadline,
+        forceRSVP: eventData.forceRSVP,
+      };
+      setEvent(displayEvent);
+    } catch (error) {
+      console.error('Failed to update attendance:', error);
+      alert('Failed to update attendance. Please try again.');
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -284,11 +271,26 @@ function EventDetailPage() {
     return new Date() > new Date(deadline);
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-karspex-burgundy">
+        <Header />
+        <main className="grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="bg-karspex-cream rounded-lg shadow-md p-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-karspex-burgundy mb-4"></div>
+            <p className="text-karspex-gray-800">Loading event...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   if (!event) {
     return (
       <div className="min-h-screen flex flex-col bg-karspex-burgundy">
         <Header />
-        <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <main className="grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-karspex-cream rounded-lg shadow-md p-8 text-center">
             <h2 className="text-2xl font-bold text-karspex-black mb-4">Event Not Found</h2>
             <p className="text-karspex-gray-800 mb-6">
@@ -309,7 +311,7 @@ function EventDetailPage() {
     <div className="min-h-screen flex flex-col bg-karspex-burgundy">
       <Header />
 
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-6 flex justify-center lg:justify-start">
           <Button variant="secondary" onClick={() => navigate('/events')}>
             <ArrowLeft size={20} className="mr-2" />
@@ -343,18 +345,18 @@ function EventDetailPage() {
 
           <div className="space-y-4 mb-8">
             <div className="flex items-start text-karspex-gray-800">
-              <Calendar size={20} className="mr-3 mt-1 flex-shrink-0" />
+              <Calendar size={20} className="mr-3 mt-1 shrink-0" />
               <span className="text-lg">{formatDate(event.date)}</span>
             </div>
 
             <div className="flex items-start text-karspex-gray-800">
-              <MapPin size={20} className="mr-3 mt-1 flex-shrink-0" />
+              <MapPin size={20} className="mr-3 mt-1 shrink-0" />
               <span className="text-lg">{event.location}</span>
             </div>
 
-            {event.createdBy === currentUserId && (
+            {user?._id === event.createdBy && (
               <div className="flex items-start text-karspex-gray-800">
-                <Users size={20} className="mr-3 mt-1 flex-shrink-0" />
+                <Users size={20} className="mr-3 mt-1 shrink-0" />
                 <span className="text-lg">
                   {event.attendees} attendees
                   {event.maxAttendees && ` (max ${event.maxAttendees})`}
@@ -386,12 +388,12 @@ function EventDetailPage() {
           {event.createdBy && (
             <div className="mb-8 pb-8 border-b border-karspex-gray-100">
               <p className="text-sm text-karspex-gray-800">
-                <span className="font-medium">Created by:</span> {event.createdBy}
+                <span className="font-medium">Created by event manager</span>
               </p>
             </div>
           )}
 
-          {event.createdBy === currentUserId &&
+          {user?._id === event.createdBy &&
             event.attendeesList &&
             event.attendeesList.length > 0 && (
               <div className="mb-8">
