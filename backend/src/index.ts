@@ -1,6 +1,8 @@
+import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import { connectDatabase, disconnectDatabase } from './config/database.js';
 import routes from './routes/index.js';
 
 const fastify = Fastify({
@@ -25,9 +27,23 @@ fastify.get('/health', async () => ({
   timestamp: new Date().toISOString(),
 }));
 
+// Graceful shutdown
+const gracefulShutdown = async () => {
+  console.log('Shutting down gracefully...');
+  await fastify.close();
+  await disconnectDatabase();
+  process.exit(0);
+};
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
+
 // Start server
 const start = async (): Promise<void> => {
   try {
+    // Connect to MongoDB
+    await connectDatabase();
+
     const port = Number(process.env.PORT) || 3000;
     const host = process.env.HOST || '0.0.0.0';
 
@@ -35,6 +51,7 @@ const start = async (): Promise<void> => {
     console.log(`Server listening on http://${host}:${port}`);
   } catch (err) {
     fastify.log.error(err);
+    await disconnectDatabase();
     process.exit(1);
   }
 };

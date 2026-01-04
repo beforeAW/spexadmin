@@ -23,7 +23,7 @@ spexadmin/
 
 ## Backend
 
-Backend är byggd med Fastify och TypeScript och följer Airbnb JavaScript/TypeScript Style Guide.
+Backend är byggd med Fastify, TypeScript och MongoDB och följer Airbnb JavaScript/TypeScript Style Guide.
 
 ### Installation
 ```bash
@@ -31,15 +31,30 @@ cd backend
 npm install
 ```
 
+### MongoDB Setup
+Ensure MongoDB is running locally or configure your connection string in `.env`:
+```bash
+# Local MongoDB
+MONGODB_URI=mongodb://localhost:27017/spexadmin
+
+# Or MongoDB Atlas
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/spexadmin
+```
+
 ### Konfiguration
 ```bash
 cd backend
 cp .env.example .env
+# Edit .env with your MongoDB connection string
 ```
 
 ### Användning
 ```bash
-cd backend
+cd backendGet all users
+- `POST /api/users` - Create a new user
+- `GET /api/users/:id` - Get user by ID
+- `PUT /api/users/:id` - Update user
+- `DELETE /api/users/:id` - Delete user
 npm run dev    # Development mode (tsx watch)
 npm run build  # Build TypeScript to JavaScript
 npm start      # Production mode (runs compiled code)
