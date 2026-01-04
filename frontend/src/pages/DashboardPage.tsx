@@ -13,6 +13,7 @@ import {
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Button from '../components/Button';
+import { authAPI, dashboardAPI } from '../utils/api';
 
 interface DashboardStats {
   totalUsers: number;
@@ -37,67 +38,39 @@ interface User {
   roles: string[];
 }
 
-// Mock data
-const mockStats: DashboardStats = {
-  totalUsers: 47,
-  totalEvents: 12,
-  totalGroups: 5,
-  upcomingEvents: 8,
-  activeUsers: 43,
-};
-
-const mockRecentEvents: RecentEvent[] = [
-  {
-    _id: '1',
-    title: 'Kör Repetition',
-    date: '2026-01-10T18:00:00Z',
-    attendees: 24,
-    status: 'upcoming',
-  },
-  {
-    _id: '2',
-    title: 'Orkester Övning',
-    date: '2026-01-12T19:00:00Z',
-    attendees: 18,
-    status: 'upcoming',
-  },
-  {
-    _id: '7',
-    title: 'Obligatoriskt säkerhetsmöte',
-    date: '2026-01-08T19:00:00Z',
-    attendees: 1,
-    status: 'upcoming',
-  },
-];
-
-const mockUser: User = {
-  _id: 'user1',
-  firstname: 'Anna',
-  lastname: 'Andersson',
-  roles: ['user', 'groupmanager', 'manager'],
-};
-
 function DashboardPage() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User>(mockUser);
-  const [stats] = useState<DashboardStats>(mockStats);
-  const [recentEvents] = useState<RecentEvent[]>(mockRecentEvents);
-  const [_isLoading, _setIsLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentEvents, setRecentEvents] = useState<RecentEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Get user from localStorage or use mock
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        const [userData, dashboardData] = await Promise.all([
+          authAPI.getCurrentUser(),
+          dashboardAPI.getStats(),
+        ]);
 
-    // In real app, fetch dashboard data from API
-    // fetchDashboardData();
-  }, []);
+        setUser(userData);
+        setStats(dashboardData);
+        setRecentEvents(dashboardData.recentEvents || []);
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+        navigate('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const isManager = user.roles.includes('manager');
-  const isAdmin = user.roles.includes('admin');
-  const isGroupManager = user.roles.includes('groupmanager');
+    fetchDashboardData();
+  }, [navigate]);
+
+  const isManager = user?.roles.includes('manager') || false;
+  const isAdmin = user?.roles.includes('admin') || false;
+  const isGroupManager = user?.roles.includes('groupmanager') || false;
 
   const canViewDashboard = isManager || isAdmin || isGroupManager;
 
@@ -124,11 +97,26 @@ function DashboardPage() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-karspex-burgundy">
+        <Header />
+        <main className="grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="bg-karspex-cream rounded-lg shadow-md p-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-karspex-burgundy mb-4"></div>
+            <p className="text-karspex-gray-800">Loading dashboard...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   if (!canViewDashboard) {
     return (
       <div className="min-h-screen flex flex-col bg-karspex-burgundy">
         <Header />
-        <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <main className="grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-karspex-cream rounded-lg shadow-md p-8 text-center">
             <AlertCircle size={48} className="mx-auto text-karspex-red mb-4" />
             <h2 className="text-2xl font-bold text-karspex-black mb-4">Access Denied</h2>
@@ -147,12 +135,12 @@ function DashboardPage() {
     <div className="min-h-screen flex flex-col bg-karspex-burgundy">
       <Header />
 
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
           <p className="text-karspex-cream">
-            Welcome back, {user.firstname}! Here's an overview of your organization.
+            Welcome back, {user?.firstname}! Here's an overview of your organization.
           </p>
         </div>
 
@@ -166,9 +154,9 @@ function DashboardPage() {
               </div>
               <TrendingUp size={20} className="text-green-600" />
             </div>
-            <h3 className="text-2xl font-bold text-karspex-black mb-1">{stats.totalUsers}</h3>
+            <h3 className="text-2xl font-bold text-karspex-black mb-1">{stats?.totalUsers}</h3>
             <p className="text-sm text-karspex-gray-800">Total Users</p>
-            <p className="text-xs text-green-600 mt-2">{stats.activeUsers} active</p>
+            <p className="text-xs text-green-600 mt-2">{stats?.activeUsers} active</p>
           </div>
 
           {/* Total Events */}
@@ -178,10 +166,10 @@ function DashboardPage() {
                 <Calendar size={24} className="text-karspex-burgundy" />
               </div>
               <span className="text-xs font-medium text-karspex-gold bg-karspex-gold bg-opacity-10 px-2 py-1 rounded">
-                {stats.upcomingEvents} upcoming
+                {stats?.upcomingEvents} upcoming
               </span>
             </div>
-            <h3 className="text-2xl font-bold text-karspex-black mb-1">{stats.totalEvents}</h3>
+            <h3 className="text-2xl font-bold text-karspex-black mb-1">{stats?.totalEvents}</h3>
             <p className="text-sm text-karspex-gray-800">Total Events</p>
             <Button
               variant="outline"
@@ -200,7 +188,7 @@ function DashboardPage() {
                 <UserCog size={24} className="text-karspex-burgundy" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-karspex-black mb-1">{stats.totalGroups}</h3>
+            <h3 className="text-2xl font-bold text-karspex-black mb-1">{stats?.totalGroups}</h3>
             <p className="text-sm text-karspex-gray-800">Total Groups</p>
             <Button
               variant="outline"

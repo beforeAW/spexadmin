@@ -209,7 +209,7 @@ function GroupManagementPage() {
     return (
       <div className="min-h-screen flex flex-col bg-karspex-burgundy">
         <Header />
-        <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <main className="grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-karspex-cream rounded-lg shadow-md p-8 text-center">
             <h2 className="text-2xl font-bold text-karspex-black mb-4">Access Denied</h2>
             <p className="text-karspex-gray-800 mb-6">
@@ -226,7 +226,7 @@ function GroupManagementPage() {
     <div className="min-h-screen flex flex-col bg-karspex-burgundy">
       <Header />
 
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">Group Management</h1>

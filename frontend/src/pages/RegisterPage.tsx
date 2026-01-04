@@ -220,7 +220,7 @@ function RegisterPage() {
   return (
     <div className="min-h-screen bg-karspex-burgundy flex flex-col">
       <Header />
-      <div className="flex-grow flex items-center justify-center py-12 px-4">
+      <div className="grow flex items-center justify-center py-12 px-4">
         <div className="bg-karspex-cream rounded-lg shadow-lg p-8 max-w-2xl w-full">
           <h1 className="text-3xl font-bold text-karspex-black mb-6 text-center">
             Register for Spexadmin

@@ -22,7 +22,7 @@ function Header() {
         {/* Desktop & Tablet Layout */}
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <Link
               to="/"
               className="text-xl sm:text-2xl font-bold text-karspex-black hover:text-karspex-gold transition-colors"
