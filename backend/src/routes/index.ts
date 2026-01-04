@@ -124,13 +124,13 @@ async function routes(fastify: FastifyInstance): Promise<void> {
 
   // ==================== USER ROUTES ====================
 
-  // Get all users
-  fastify.get('/api/users', async () => {
+  // Get all users (authenticated users only)
+  fastify.get('/api/users', { preHandler: [authenticate] }, async () => {
     const users = await User.find();
     return { users };
   });
 
-  // Create a new user
+  // Create a new user (Admin only - use /api/auth/register for signup)
   fastify.post<{
     Body: {
       email: string;
@@ -144,7 +144,7 @@ async function routes(fastify: FastifyInstance): Promise<void> {
       groups?: string[];
       active?: boolean;
     };
-  }>('/api/users', async (request, reply) => {
+  }>('/api/users', { preHandler: [requireAdmin] }, async (request, reply) => {
     try {
       const user = new User(request.body);
       await user.save();
@@ -158,10 +158,10 @@ async function routes(fastify: FastifyInstance): Promise<void> {
     }
   });
 
-  // Get user by ID
+  // Get user by ID (authenticated users only)
   fastify.get<{
     Params: { id: string };
-  }>('/api/users/:id', async (request, reply) => {
+  }>('/api/users/:id', { preHandler: [authenticate] }, async (request, reply) => {
     try {
       const user = await User.findById(request.params.id);
       if (!user) {
@@ -174,7 +174,7 @@ async function routes(fastify: FastifyInstance): Promise<void> {
     }
   });
 
-  // Update user
+  // Update user (users can update themselves, admins can update anyone)
   fastify.put<{
     Params: { id: string };
     Body: {
@@ -189,8 +189,17 @@ async function routes(fastify: FastifyInstance): Promise<void> {
       groups?: string[];
       active?: boolean;
     };
-  }>('/api/users/:id', async (request, reply) => {
+  }>('/api/users/:id', { preHandler: [authenticate] }, async (request, reply) => {
     try {
+      const currentUser = request.user as { id: string; email: string; roles: string[] };
+
+      // Check if user is updating themselves or is an admin
+      const isAdmin = currentUser.roles && currentUser.roles.includes('admin');
+      if (currentUser.id !== request.params.id && !isAdmin) {
+        reply.status(403).send({ error: 'You can only update your own profile' });
+        return;
+      }
+
       const user = await User.findByIdAndUpdate(request.params.id, request.body, {
         new: true,
         runValidators: true,
@@ -209,10 +218,10 @@ async function routes(fastify: FastifyInstance): Promise<void> {
     }
   });
 
-  // Delete user
+  // Delete user (Admin only)
   fastify.delete<{
     Params: { id: string };
-  }>('/api/users/:id', async (request, reply) => {
+  }>('/api/users/:id', { preHandler: [requireAdmin] }, async (request, reply) => {
     try {
       const user = await User.findByIdAndDelete(request.params.id);
       if (!user) {
