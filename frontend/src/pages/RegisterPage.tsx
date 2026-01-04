@@ -186,7 +186,7 @@ function RegisterPage() {
         nickname: formData.nickname || undefined,
         personnummer: formData.personnummer || undefined,
         foodpreference: foodPreferencesList.join('\n') || undefined,
-        allergys: allergiesList.join('\n') || undefined,
+        allergys: allergiesList.length ? allergiesList : undefined,
       });
 
       // Store token in localStorage
