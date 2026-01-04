@@ -2,6 +2,7 @@ import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import jwt from '@fastify/jwt';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
 import routes from './routes/index.js';
 
@@ -16,6 +17,11 @@ await fastify.register(helmet, {
 
 await fastify.register(cors, {
   origin: true,
+});
+
+// Register JWT
+await fastify.register(jwt, {
+  secret: process.env.JWT_SECRET || 'your-secret-key-change-this-in-production',
 });
 
 // Register routes
