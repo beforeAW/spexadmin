@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Edit2, Trash2, Users } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -7,6 +8,7 @@ import Modal from '../components/Modal';
 import Input from '../components/Input';
 import FormField from '../components/FormField';
 import Select from '../components/Select';
+import { authAPI, userAPI } from '../utils/api';
 
 interface User {
   _id: string;
@@ -29,91 +31,17 @@ interface CurrentUser {
   roles: string[];
 }
 
-// Mock users data
-const mockUsers: User[] = [
-  {
-    _id: 'user1',
-    firstname: 'Anna',
-    lastname: 'Andersson',
-    nickname: 'Ankan',
-    email: 'anna.andersson@example.com',
-    personnummer: '199001011234',
-    roles: ['user', 'groupmanager', 'manager'],
-    foodpreference: 'Vegetarian',
-    allergys: ['Glutenintolerans'],
-    groups: ['1', '2'],
-    createdAt: '2025-01-15T10:00:00Z',
-  },
-  {
-    _id: 'user2',
-    firstname: 'Erik',
-    lastname: 'Eriksson',
-    email: 'erik.eriksson@example.com',
-    roles: ['user'],
-    foodpreference: 'Alltätare',
-    allergys: ['Nötallergi'],
-    groups: ['1', '2'],
-    createdAt: '2025-02-10T10:00:00Z',
-  },
-  {
-    _id: 'user3',
-    firstname: 'Maria',
-    lastname: 'Svensson',
-    email: 'maria.svensson@example.com',
-    roles: ['user'],
-    foodpreference: 'Vegan',
-    groups: ['1', '3'],
-    createdAt: '2025-02-20T10:00:00Z',
-  },
-  {
-    _id: 'user4',
-    firstname: 'Johan',
-    lastname: 'Karlsson',
-    email: 'johan.karlsson@example.com',
-    roles: ['user', 'eventmanager'],
-    allergys: ['Laktos'],
-    groups: ['1'],
-    createdAt: '2025-03-01T10:00:00Z',
-  },
-  {
-    _id: 'user5',
-    firstname: 'Lisa',
-    lastname: 'Johansson',
-    email: 'lisa.johansson@example.com',
-    roles: ['user'],
-    foodpreference: 'Pescetarian',
-    groups: ['1'],
-    createdAt: '2025-03-15T10:00:00Z',
-  },
-  {
-    _id: 'user6',
-    firstname: 'Per',
-    lastname: 'Andersson',
-    email: 'per.andersson@example.com',
-    roles: ['user', 'groupmanager'],
-    foodpreference: 'Alltätare',
-    allergys: ['Selleri'],
-    groups: ['2'],
-    createdAt: '2025-04-01T10:00:00Z',
-  },
-];
-
-const mockCurrentUser: CurrentUser = {
-  _id: 'user1',
-  firstname: 'Anna',
-  lastname: 'Andersson',
-  roles: ['user', 'groupmanager', 'manager'],
-};
-
 function UserManagementPage() {
-  const [users, setUsers] = useState<User[]>(mockUsers);
-  const [currentUser, setCurrentUser] = useState<CurrentUser>(mockCurrentUser);
+  const navigate = useNavigate();
+  const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Form state for editing
   const [formData, setFormData] = useState({
@@ -125,18 +53,29 @@ function UserManagementPage() {
   });
 
   useEffect(() => {
-    // Get user from localStorage or use mock
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const [userData, usersData] = await Promise.all([
+          authAPI.getCurrentUser(),
+          userAPI.getAll(),
+        ]);
 
-    // In real app, fetch users from API
-    // fetchUsers();
-  }, []);
+        setCurrentUser(userData);
+        setUsers(usersData.users);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+        navigate('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [navigate]);
 
   const canManageUsers =
-    currentUser.roles.includes('manager') || currentUser.roles.includes('admin');
+    currentUser?.roles.includes('manager') || currentUser?.roles.includes('admin');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -188,37 +127,46 @@ function UserManagementPage() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleEditUser = (e: React.FormEvent) => {
+  const handleEditUser = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!selectedUser) return;
 
-    // In real app, send PUT request to API
-    const updatedUsers = users.map((user) =>
-      user._id === selectedUser._id
-        ? {
-            ...user,
-            firstname: formData.firstname,
-            lastname: formData.lastname,
-            nickname: formData.nickname,
-            email: formData.email,
-            roles: formData.roles,
-          }
-        : user
-    );
+    try {
+      await userAPI.update(selectedUser._id, {
+        firstname: formData.firstname,
+        lastname: formData.lastname,
+        nickname: formData.nickname || undefined,
+        email: formData.email,
+        roles: formData.roles,
+      });
 
-    setUsers(updatedUsers);
-    setIsEditModalOpen(false);
-    setSelectedUser(null);
+      // Refresh users list
+      const updatedUsers = await userAPI.getAll();
+      setUsers(updatedUsers.users);
+      setIsEditModalOpen(false);
+      setSelectedUser(null);
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      alert('Failed to update user. Please try again.');
+    }
   };
 
-  const handleDeleteUser = () => {
+  const handleDeleteUser = async () => {
     if (!selectedUser) return;
 
-    // In real app, send DELETE request to API
-    setUsers(users.filter((user) => user._id !== selectedUser._id));
-    setIsDeleteModalOpen(false);
-    setSelectedUser(null);
+    try {
+      await userAPI.delete(selectedUser._id);
+
+      // Refresh users list
+      const updatedUsers = await userAPI.getAll();
+      setUsers(updatedUsers.users);
+      setIsDeleteModalOpen(false);
+      setSelectedUser(null);
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      alert('Failed to delete user. Please try again.');
+    }
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -244,11 +192,26 @@ function UserManagementPage() {
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-karspex-burgundy">
+        <Header />
+        <main className="grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="bg-karspex-cream rounded-lg shadow-md p-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-karspex-burgundy mb-4"></div>
+            <p className="text-karspex-gray-800">Loading users...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   if (!canManageUsers) {
     return (
       <div className="min-h-screen flex flex-col bg-karspex-burgundy">
         <Header />
-        <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <main className="grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-karspex-cream rounded-lg shadow-md p-8 text-center">
             <h2 className="text-2xl font-bold text-karspex-black mb-4">Access Denied</h2>
             <p className="text-karspex-gray-800 mb-6">
@@ -267,7 +230,7 @@ function UserManagementPage() {
     <div className="min-h-screen flex flex-col bg-karspex-burgundy">
       <Header />
 
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -340,7 +303,7 @@ function UserManagementPage() {
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 bg-karspex-burgundy rounded-full flex items-center justify-center">
+                        <div className="shrink-0 h-10 w-10 bg-karspex-burgundy rounded-full flex items-center justify-center">
                           <span className="text-white font-medium">
                             {user.firstname[0]}
                             {user.lastname[0]}
@@ -393,7 +356,7 @@ function UserManagementPage() {
                       >
                         <Edit2 size={18} />
                       </button>
-                      {user._id !== currentUser._id && (
+                      {user._id !== currentUser?._id && (
                         <button
                           onClick={() => openDeleteModal(user)}
                           className="text-karspex-red hover:text-red-700"
@@ -426,7 +389,7 @@ function UserManagementPage() {
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center space-x-3 flex-1">
-                  <div className="flex-shrink-0 h-12 w-12 bg-karspex-burgundy rounded-full flex items-center justify-center">
+                  <div className="shrink-0 h-12 w-12 bg-karspex-burgundy rounded-full flex items-center justify-center">
                     <span className="text-white font-medium">
                       {user.firstname[0]}
                       {user.lastname[0]}
@@ -457,7 +420,7 @@ function UserManagementPage() {
                   >
                     <Edit2 size={18} />
                   </button>
-                  {user._id !== currentUser._id && (
+                  {user._id !== currentUser?._id && (
                     <button
                       onClick={() => openDeleteModal(user)}
                       className="text-karspex-red hover:text-red-700"

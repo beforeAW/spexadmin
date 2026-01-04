@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { authAPI } from '../utils/api';
 
 interface User {
   _id: string;
@@ -18,38 +20,29 @@ interface User {
   truckLicense?: boolean;
 }
 
-// Mock data for testing
-const mockUser: User = {
-  _id: '507f1f77bcf86cd799439011',
-  email: 'anna.andersson@karspex.se',
-  firstname: 'Anna',
-  lastname: 'Andersson',
-  nickname: 'Ankan',
-  roles: ['user', 'groupmanager'],
-  active: true,
-  foodpreference: 'Vegetarian',
-  allergys: 'Nötter, Laktos',
-  personnummer: '199001011234',
-  groups: ['Kör', 'Orkester', 'Teatergruppen'],
-  driversLicense: true,
-  truckLicense: false,
-};
-
 function ProfilePage() {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Get user from localStorage or use mock data
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    } else {
-      // Use mock data instead of redirecting
-      setUser(mockUser);
-    }
-  }, []);
+    const fetchUser = async () => {
+      try {
+        setIsLoading(true);
+        const userData = await authAPI.getCurrentUser();
+        setUser(userData);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+        navigate('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  if (!user) {
+    fetchUser();
+  }, [navigate]);
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-karspex-burgundy flex items-center justify-center">
         <div className="text-karspex-cream text-xl">Loading...</div>
@@ -57,10 +50,14 @@ function ProfilePage() {
     );
   }
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-karspex-burgundy flex flex-col">
       <Header />
-      <div className="flex-grow py-12 px-4">
+      <div className="grow py-12 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="bg-karspex-cream rounded-lg shadow-lg p-8">
             <div className="mb-6">
