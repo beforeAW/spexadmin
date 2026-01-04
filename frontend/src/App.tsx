@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import Header from './components/Header';
+import Footer from './components/Footer';
 
 function App() {
   const [count, setCount] = useState(0);
 
   return (
-    <div className="min-h-screen bg-karspex-burgundy">
+    <div className="min-h-screen bg-karspex-burgundy flex flex-col">
       <Header />
-      <div className="flex items-center justify-center py-12">
+      <div className="flex-grow flex items-center justify-center py-12">
         <div className="bg-karspex-cream rounded-lg shadow-lg p-8 max-w-md w-full">
           <h1 className="text-3xl font-bold text-karspex-red mb-6 text-center">Spexadmin</h1>
           <div className="text-center">
@@ -25,6 +26,7 @@ function App() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
