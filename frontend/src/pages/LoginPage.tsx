@@ -4,6 +4,7 @@ import Footer from '../components/Footer';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import FormField from '../components/FormField';
+import { authAPI } from '../utils/api';
 
 interface LoginFormData {
   email: string;
@@ -32,22 +33,7 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
+      const data = await authAPI.login(formData.email, formData.password);
 
       // Store token in localStorage
       localStorage.setItem('token', data.token);
