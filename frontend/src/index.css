@@ -1,0 +1,20 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Kårspexet Primary Colors */
+  --color-karspex-red: #c4242f;
+  --color-karspex-red-dark: #a61f28;
+  --color-karspex-burgundy: #760408;
+  --color-karspex-burgundy-dark: #4b0003;
+
+  /* Kårspexet Secondary Colors */
+  --color-karspex-gold: #d4a814;
+  --color-karspex-gold-dark: #a46917;
+  --color-karspex-cream: #eedccb;
+
+  /* Kårspexet Neutral Colors */
+  --color-karspex-white: #ffffff;
+  --color-karspex-black: #000000;
+  --color-karspex-gray-100: #e3e3e3;
+  --color-karspex-gray-800: #3d3d3d;
+}
