@@ -1,4 +1,16 @@
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+
 function Footer() {
+  const navigate = useNavigate();
+  const [isLoggedIn] = useState(() => !!localStorage.getItem('token'));
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
   return (
     <footer className="bg-karspex-cream border-t border-karspex-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -15,37 +27,55 @@ function Footer() {
             <h3 className="text-lg font-bold text-karspex-black mb-4">Snabblänkar</h3>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="/"
+                <Link
+                  to="/login"
                   className="text-karspex-gray-800 hover:text-karspex-gold transition-colors duration-200 text-sm"
                 >
-                  Välkommen
-                </a>
+                  Login
+                </Link>
               </li>
               <li>
-                <a
-                  href="/bli-spexare"
+                <Link
+                  to="/register"
                   className="text-karspex-gray-800 hover:text-karspex-gold transition-colors duration-200 text-sm"
                 >
-                  Bli spexare
-                </a>
+                  Register
+                </Link>
               </li>
               <li>
-                <a
-                  href="/produktioner"
+                <Link
+                  to="/events"
                   className="text-karspex-gray-800 hover:text-karspex-gold transition-colors duration-200 text-sm"
                 >
-                  Produktioner
-                </a>
+                  Events
+                </Link>
               </li>
               <li>
-                <a
-                  href="/webbutik"
+                <Link
+                  to="/profile"
                   className="text-karspex-gray-800 hover:text-karspex-gold transition-colors duration-200 text-sm"
                 >
-                  Webbutik
-                </a>
+                  Profile
+                </Link>
               </li>
+              <li>
+                <Link
+                  to="/settings"
+                  className="text-karspex-gray-800 hover:text-karspex-gold transition-colors duration-200 text-sm"
+                >
+                  Settings
+                </Link>
+              </li>
+              {isLoggedIn && (
+                <li>
+                  <button
+                    onClick={handleLogout}
+                    className="text-karspex-gray-800 hover:text-karspex-gold transition-colors duration-200 text-sm"
+                  >
+                    Logout
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
         </div>

@@ -1,7 +1,20 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { CircleUser, Settings, LogOut } from 'lucide-react';
+import Button from './Button';
 
 function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
+  // Check if user is logged in
+  const isLoggedIn = localStorage.getItem('token') !== null;
 
   return (
     <header className="bg-karspex-cream shadow-md sticky top-0 z-50">
@@ -10,61 +23,127 @@ function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
           <div className="flex-shrink-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-karspex-black">Spexadmin</h1>
+            <Link
+              to="/"
+              className="text-xl sm:text-2xl font-bold text-karspex-black hover:text-karspex-gold transition-colors"
+            >
+              Spexadmin
+            </Link>
           </div>
 
           {/* Desktop Navigation (lg and up) */}
           <nav className="hidden lg:flex space-x-8">
-            <a
-              href="/"
+            <Link
+              to="/login"
               className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 font-medium"
             >
-              Välkommen
-            </a>
-            <a
-              href="/bli-spexare"
+              Login
+            </Link>
+            <Link
+              to="/register"
               className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 font-medium"
             >
-              Bli spexare
-            </a>
-            <a
-              href="/produktioner"
+              Register
+            </Link>
+            <Link
+              to="/events"
               className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 font-medium"
             >
-              Produktioner
-            </a>
-            <a
-              href="/webbutik"
+              Events
+            </Link>
+            <Link
+              to="/profile"
               className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 font-medium"
             >
-              Webbutik
-            </a>
+              Profile
+            </Link>
+            <Link
+              to="/settings"
+              className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 font-medium"
+            >
+              Settings
+            </Link>
           </nav>
+
+          {/* Logout Button */}
+          {isLoggedIn && (
+            <div className="hidden lg:block">
+              <Button variant="outline" onClick={handleLogout} size="sm">
+                Logout
+              </Button>
+            </div>
+          )}
 
           {/* Tablet Navigation (md to lg) */}
           <nav className="hidden md:flex lg:hidden space-x-4">
-            <a
-              href="/"
+            <Link
+              to="/login"
               className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 text-sm font-medium"
             >
-              Hem
-            </a>
-            <a
-              href="/bli-spexare"
+              Login
+            </Link>
+            <Link
+              to="/register"
               className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 text-sm font-medium"
             >
-              Bli spexare
-            </a>
-            <a
-              href="/produktioner"
+              Register
+            </Link>
+            <Link
+              to="/events"
               className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 text-sm font-medium"
             >
-              Produktioner
-            </a>
+              Events
+            </Link>
+            <Link
+              to="/profile"
+              className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 text-sm font-medium"
+              title="Profile"
+            >
+              <CircleUser size={20} />
+            </Link>
+            <Link
+              to="/settings"
+              className="text-karspex-black hover:text-karspex-gold transition-colors duration-200 text-sm font-medium"
+              title="Settings"
+            >
+              <Settings size={20} />
+            </Link>
           </nav>
 
-          {/* Mobile menu button (phone only) */}
-          <div className="md:hidden">
+          {/* Logout Button - Tablet */}
+          {isLoggedIn && (
+            <div className="hidden md:block lg:hidden">
+              <Button variant="outline" onClick={handleLogout} size="sm" title="Logout">
+                <LogOut size={20} />
+              </Button>
+            </div>
+          )}
+
+          {/* Mobile Icons and menu button (phone only) */}
+          <div className="md:hidden flex items-center space-x-3">
+            <Link
+              to="/profile"
+              className="text-karspex-black hover:text-karspex-gold transition-colors duration-200"
+              title="Profile"
+            >
+              <CircleUser size={22} />
+            </Link>
+            <Link
+              to="/settings"
+              className="text-karspex-black hover:text-karspex-gold transition-colors duration-200"
+              title="Settings"
+            >
+              <Settings size={22} />
+            </Link>
+            {isLoggedIn && (
+              <button
+                onClick={handleLogout}
+                className="text-karspex-black hover:text-karspex-gold transition-colors duration-200"
+                title="Logout"
+              >
+                <LogOut size={22} />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -105,30 +184,24 @@ function Header() {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-karspex-cream">
             <nav className="py-4 space-y-3">
-              <a
-                href="/"
+              <Link
+                to="/login"
                 className="block text-karspex-black hover:text-karspex-gold hover:bg-karspex-white transition-colors duration-200 font-medium py-2 px-4 rounded"
               >
-                Välkommen
-              </a>
-              <a
-                href="/bli-spexare"
+                Login
+              </Link>
+              <Link
+                to="/register"
                 className="block text-karspex-black hover:text-karspex-gold hover:bg-karspex-white transition-colors duration-200 font-medium py-2 px-4 rounded"
               >
-                Bli spexare
-              </a>
-              <a
-                href="/produktioner"
+                Register
+              </Link>
+              <Link
+                to="/events"
                 className="block text-karspex-black hover:text-karspex-gold hover:bg-karspex-white transition-colors duration-200 font-medium py-2 px-4 rounded"
               >
-                Produktioner
-              </a>
-              <a
-                href="/webbutik"
-                className="block text-karspex-black hover:text-karspex-gold hover:bg-karspex-white transition-colors duration-200 font-medium py-2 px-4 rounded"
-              >
-                Webbutik
-              </a>
+                Events
+              </Link>
             </nav>
           </div>
         )}
