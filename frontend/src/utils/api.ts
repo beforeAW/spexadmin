@@ -1,6 +1,13 @@
 // API utility for making authenticated requests
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+// Prefer environment variable; in production, fall back to the hosted API if missing
+const resolvedBaseEnv = (import.meta as any).env?.VITE_API_BASE_URL as string | undefined;
+const API_BASE_URL =
+  resolvedBaseEnv && resolvedBaseEnv.trim() !== ''
+    ? resolvedBaseEnv
+    : (import.meta as any).env?.PROD
+      ? 'https://spexadmin.onrender.com'
+      : 'http://localhost:3000';
 
 interface RequestOptions extends RequestInit {
   requireAuth?: boolean;
