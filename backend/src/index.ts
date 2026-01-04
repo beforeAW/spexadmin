@@ -27,6 +27,17 @@ await fastify.register(jwt, {
 // Register routes
 await fastify.register(routes);
 
+// Root endpoint
+fastify.get('/', async () => ({
+  name: 'Spexadmin API',
+  version: '1.0.0',
+  status: 'running',
+  endpoints: {
+    health: '/health',
+    api: '/api',
+  },
+}));
+
 // Health check endpoint
 fastify.get('/health', async () => ({
   status: 'ok',
